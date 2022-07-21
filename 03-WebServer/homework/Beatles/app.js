@@ -22,3 +22,42 @@ var beatles=[{
   profilePic:"http://cp91279.biography.com/BIO_Bio-Shorts_0_Ringo-Starr_SF_HD_768x432-16x9.jpg"
 }
 ]
+
+
+http.createServer((req, res) => {
+  if(req.url === "/"){
+    const htmlRead = fs.readFileSync(__dirname + '/index.html');
+    res.writeHead(200)
+    res.end(htmlRead)
+  }
+  if (req.url === "/api") {
+    res.writeHead(200, {"Content-Type": "application/json"})
+    const beatlesJson = JSON.stringify(beatles)
+    res.end(beatlesJson)
+  } else {
+    if( req.url.startsWith('/api/')) {
+      const getNameFromUrl = req.url.slice(5).replace('%20', ' ')
+      const foundBeatle = beatles.find(beatle => beatle.name.toLowerCase() === getNameFromUrl.toLowerCase())
+      if (foundBeatle) {
+        res.end(JSON.stringify(foundBeatle))
+      } else {
+        res.end("404, beatle no encontrado")
+      }
+      
+    } else{
+      const getNameFromUrl = req.url.slice(1).replace('%20', ' ')
+      const foundBeatle = beatles.find(beatle => beatle.name.toLowerCase() === getNameFromUrl.toLowerCase())
+      if (!foundBeatle) {
+        res.end("404, beatle no encontrado")
+      } else {
+       var htmlRead =    fs.readFileSync(__dirname + '/beatle.html', 'utf8')    
+       htmlRead =htmlRead.replace('{titulo}', foundBeatle.name)
+                         .replace('{nombre}', foundBeatle.name).replace('{fecha}', foundBeatle.birthdate)
+                         .replace('{img}', foundBeatle.profilePic)
+       res.end(htmlRead)
+      }
+    }
+  }
+}).listen(3001, () => {
+  console.log("server escuchando correctamente")
+})
